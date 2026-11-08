@@ -1549,10 +1549,10 @@ function pageComponent(v,key){
 
 function route(){
   CODE_OPEN=false;
-  var h=(location.hash||'').replace('#','')||'button',v=$('#view');
+  var h=(location.hash||'').replace('#','')||'alert',v=$('#view');
   buildNav(h);$('#side').classList.remove('open');$('#menuBtn').setAttribute('aria-expanded','false');
   if(h==='colors')pageColors(v);else if(h==='color-tokens')pageTokens(v);else if(h==='typography')pageType(v);else if(h==='spacing')pageSpace(v);else if(h==='icons')pageIcons(v);
-  else if(KEY[h])pageComponent(v,KEY[h]);else{location.hash='#button';return}
+  else if(KEY[h])pageComponent(v,KEY[h]);else{location.hash='#alert';return}
   document.title='Norden Design System';
   window.scrollTo(0,0);
 }
