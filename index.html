@@ -593,16 +593,16 @@ function inMatrix(on){var S=['large','medium','small'],R=['default','focus','hov
   return {cols:['Large','Medium','Small'],rows:R.map(function(st){return {label:st.charAt(0).toUpperCase()+st.slice(1),cells:S.map(function(z){return inHTML({size:z,state:st,hasLabel:on,label:'Label',hasPlaceholder:on,placeholder:'Placeholder',errorText:'Error message'})})}})}}
 
 function cbOne(p){var lab=p.showLabel!==false&&p.label,ds=p.showDesc!==false&&p.desc;
-  return '<label class="nd-check'+((p.state==='error'||(p.error&&p.state!=='disabled'))?' nd-check--error':'')+'"><input type="checkbox"'+(p.checked?' checked':'')+(p.state==='disabled'?' disabled':'')+((!lab&&!ds)?' aria-label="Checkbox"':'')+'><span class="box">'+I.check+'</span>'+((lab||ds)?'<span>'+(lab?'<span class="t1">'+esc(p.label)+'</span>':'')+(ds?'<span class="t2">'+esc(p.desc)+'</span>':'')+'</span>':'')+'</label>'}
+  return '<label class="nd-check'+((p.state==='error'||p.grpErr||(p.error&&p.state!=='disabled'))?' nd-check--error':'')+'"><input type="checkbox"'+(p.checked?' checked':'')+(p.state==='disabled'?' disabled':'')+((!lab&&!ds)?' aria-label="Checkbox"':'')+'><span class="box">'+I.check+'</span>'+((lab||ds)?'<span>'+(lab?'<span class="t1">'+esc(p.label)+'</span>':'')+(ds?'<span class="t2">'+esc(p.desc)+'</span>':'')+'</span>':'')+'</label>'}
 function cbGroup(p){var n=Math.max(1,Math.min(5,parseInt(p.items,10)||5)),k=p.checkedCount===undefined?2:Math.max(0,parseInt(p.checkedCount,10)||0),h='';
-  for(var i=0;i<n;i++){var hd=p['hasDesc'+(i+1)];if(hd===undefined)hd=!!p.showDesc;h+=cbOne({label:p['label'+(i+1)]||'Label',desc:hd?(p['desc'+(i+1)]||'Description'):'',showLabel:p.showLabel!==false,showDesc:hd,state:p.state,checked:i<k})}
+  for(var i=0;i<n;i++){var hd=p['hasDesc'+(i+1)];if(hd===undefined)hd=!!p.showDesc;h+=cbOne({label:p['label'+(i+1)]||'Label',desc:hd?(p['desc'+(i+1)]||'Description'):'',showLabel:p.showLabel!==false,showDesc:hd,grpErr:hd&&!!p['err'+(i+1)],state:p.state,checked:i<k})}
   return '<div class="nd-cg'+(p.state==='disabled'?' nd-cg--disabled':'')+'" role="group"'+(p.showGroupLabel?' aria-label="'+esc(p.groupLabel)+'"':'')+'>'+((p.showGroupLabel||p.showInfo)?'<div class="nd-cg__h">'+(p.showGroupLabel?'<span class="nd-cg__t">'+esc(p.groupLabel)+'</span>':'')+(p.showInfo?'<span class="nd-cg__i">'+esc(p.info)+'</span>':'')+'</div>':'')+h+'</div>'}
 C.checkbox={
   title:'Checkbox',nav:'Checkbox',src:'figma',confirmed:true,matrixTitle:'Checkbox states',matrix2Title:'Checkbox group states',
   desc:'Lets people select one or more options, or confirm a single choice such as accepting terms. Use a group when related options can be chosen together.',
   controls:(function(){
-    var G=function(P){return P.variant==='group checkbox'},S=function(P){return P.variant!=='group checkbox'},out=[
-    ctl('variant','Variant','select','single checkbox',['single checkbox','group checkbox']),
+    var G=function(P){return P.variant==='checkbox group'},S=function(P){return P.variant!=='checkbox group'},out=[
+    ctl('variant','Variant','select','checkbox',['checkbox','checkbox group']),
     ctl('state','State','select','default',['default','disabled']),
     ctl('error','Error','bool',false,null,S),
     ctl('label','Label','text','Label',null,S),
@@ -615,9 +615,10 @@ C.checkbox={
       out.push(ctl('head'+i,'Checkbox '+i,'head',null,null,vis),
         ctl('label'+i,'Label','text','Label',null,function(P){return vis(P)&&P.showLabel}),
         ctl('hasDesc'+i,'Has description','bool',true,null,vis),
+        ctl('err'+i,'Description is error','bool',false,null,function(P){return vis(P)&&P['hasDesc'+i]}),
         ctl('desc'+i,'Description','text','Description',null,function(P){return vis(P)&&P['hasDesc'+i]}))});
     return out})(),
-  render:function(p){return p.variant==='group checkbox'?cbGroup(p):cbOne(Object.assign({},p,{showLabel:true,checked:true}))},
+  render:function(p){return p.variant==='checkbox group'?cbGroup(p):cbOne(Object.assign({},p,{showLabel:true,checked:true}))},
   matrix:function(){
     var V=[['Checkbox only',{showLabel:false,showDesc:false}],['Label',{showLabel:true,showDesc:false}],['Description',{showLabel:false,showDesc:true}],['Label and description',{showLabel:true,showDesc:true}]],rows=[];
     ['default','error','disabled'].forEach(function(st){[false,true].forEach(function(c){rows.push({label:st.charAt(0).toUpperCase()+st.slice(1)+(c?', checked':', unchecked'),cells:V.map(function(v){return cbOne(Object.assign({label:'Label',desc:'Description',state:st,checked:c},v[1]))})})})});
