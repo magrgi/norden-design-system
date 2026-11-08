@@ -607,16 +607,15 @@ C.checkbox={
     ctl('error','Error','bool',false,null,S),
     ctl('label','Label','text','Label',null,S),
     ctl('showDesc','Has description','bool',true,null,S),ctl('desc','Description','text','Description',null,function(P){return S(P)&&P.showDesc}),
-    ctl('items','Checkboxes (group, max. 5)','select','5',['1','2','3','4','5'],G),
+    ctl('items','Number of items','select','5',['1','2','3','4','5'],G),
     ctl('showLabel','Has label','bool',true,null,G),
     ctl('showGroupLabel','Has group label','bool',true,null,G),ctl('groupLabel','Group label','text','Label',null,function(P){return G(P)&&P.showGroupLabel}),
     ctl('showInfo','Has group description','bool',false,null,G),ctl('info','Group description','text','Info',null,function(P){return G(P)&&P.showInfo})];
     [1,2,3,4,5].forEach(function(i){var vis=function(P){return G(P)&&i<=(parseInt(P.items,10)||5)};
-      out.push(ctl('head'+i,'Checkbox '+i,'head',null,null,vis),
-        ctl('label'+i,'Label','text','Label',null,function(P){return vis(P)&&P.showLabel}),
-        ctl('hasDesc'+i,'Has description','bool',true,null,vis),
-        ctl('err'+i,'Description is error','bool',false,null,function(P){return vis(P)&&P['hasDesc'+i]}),
-        ctl('desc'+i,'Description','text','Description',null,function(P){return vis(P)&&P['hasDesc'+i]}))});
+      out.push(ctl('label'+i,'Label '+i,'text','Label',null,function(P){return vis(P)&&P.showLabel}),
+        ctl('hasDesc'+i,'Has description '+i,'bool',true,null,vis),
+        ctl('err'+i,'Description '+i+' is error','bool',false,null,function(P){return vis(P)&&P['hasDesc'+i]}),
+        ctl('desc'+i,'Description '+i,'text','Description',null,function(P){return vis(P)&&P['hasDesc'+i]}))});
     return out})(),
   render:function(p){return p.variant==='checkbox group'?cbGroup(p):cbOne(Object.assign({},p,{showLabel:true,checked:true}))},
   matrix:function(){
@@ -1164,7 +1163,7 @@ function rdGroup(p){var n=Math.max(1,Math.min(5,Number(p.items)||5)),name=nid('r
 C.radio={title:'Radio',nav:'Radio',src:'figma',confirmed:true,
   desc:'Lets people choose exactly one option from a short list. Use a radio group when all options should be visible at once.',
   controls:(function(){var grp=function(P){return P.variant==='radio group'},out=[ctl('variant','Variant','select','radio',['radio','radio group']),ctl('items','Number of items','select','5',['2','3','4','5'],grp),ctl('state','State','select','default',['default','disabled']),
-      ctl('hasGroupLabel','Has group label','bool',true,null,grp),ctl('groupLabel','Label','text','Label',null,function(P){return grp(P)&&P.hasGroupLabel}),
+      ctl('hasGroupLabel','Has group label','bool',true,null,grp),ctl('groupLabel','Group label','text','Label',null,function(P){return grp(P)&&P.hasGroupLabel}),
       ctl('hasGroupDesc','Has group description','bool',false,null,grp),ctl('groupDesc','Group description','text','Info',null,function(P){return grp(P)&&P.hasGroupDesc})];
     [1,2,3,4,5].forEach(function(i){var vis=function(P){return i===1||(grp(P)&&i<=(parseInt(P.items,10)||5))};
       out.push(ctl('label'+i,'Label '+i,'text','Label',null,vis),ctl('hasDesc'+i,'Has description '+i,'bool',false,null,vis),ctl('err'+i,'Description '+i+' is error','bool',false,null,function(P){return vis(P)&&P['hasDesc'+i]}),ctl('desc'+i,'Description '+i,'text','Description',null,function(P){return vis(P)&&P['hasDesc'+i]}))});
