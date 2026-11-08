@@ -1517,7 +1517,7 @@ function pageComponent(v,key){
 
   function mtx(m){return '<div class="matrix"><table><thead><tr><th></th>'+m.cols.map(function(x){return '<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+m.rows.map(function(r){return '<tr><td class="rl">'+r.label+'</td>'+r.cells.map(function(cell){return '<td>'+cell+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'}
   v.innerHTML=srcBadge(c)+'<h1>'+c.title+'</h1><p class="lede">'+c.desc+'</p><h2>Interactive preview</h2>'+
-    '<div class="play play--fixed"><div class="stage" id="stage"></div><div class="ctrls" id="ctrls"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Properties</div></div></div>'+
+    '<div class="play play--fixed"><div class="stage" id="stage"'+(key==='button'?' style="background:#e53935"':'')+'></div><div class="ctrls" id="ctrls"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Properties</div></div></div>'+
     '<h2>Code</h2><div id="code"></div>';
   var stage=$('#stage'),ctrls=$('#ctrls');
   c.controls.forEach(function(x){
