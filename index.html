@@ -47,6 +47,13 @@ button,input,select{font:inherit;color:inherit}
 .nav a{display:block;padding:6px 10px;border-radius:6px;color:var(--fg);text-decoration:none}
 .nav a:hover{background:var(--code-bg)}
 .nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.nav a.ext{display:inline-flex;align-items:center;gap:6px;--ext-h:var(--n-blue-1000);--ext-p:var(--n-blue-1100)}
+.nav a.ext svg{width:16px;height:16px;flex:none}
+.nav a.ext:hover{background:none;color:var(--ext-h);text-decoration:underline;text-underline-offset:4px}
+.nav a.ext:active{color:var(--ext-p);text-decoration:underline;text-underline-offset:4px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nav a.ext{--ext-h:var(--accent);--ext-p:var(--n-blue-400)}}
+:root[data-theme="dark"] .nav a.ext{--ext-h:var(--accent);--ext-p:var(--n-blue-400)}
+.group--next{padding-top:24px}
 .topbar{display:none}
 main{min-width:0;padding-block:40px 80px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .wrap{max-width:none}
@@ -1371,7 +1378,7 @@ var KEY={};CKEYS.forEach(function(k){KEY[slugOf(k)]=k});
 
 /* ---------- shell ---------- */
 function buildNav(cur){
-  $('#side').innerHTML='<div class="brand"><span class="brand__t"><i></i><i></i><i></i><i></i>Norden Design System</span></div>'+ORDER.map(function(g){return '<div class="group">'+g[0]+'</div><div class="nav">'+g[1].map(function(it){var s=slugOf(it[0]);return '<a href="#'+s+'"'+(s===cur?' aria-current="page"':'')+'>'+it[1]+'</a>'}).join('')+'</div>'}).join('');
+  $('#side').innerHTML='<div class="brand"><span class="brand__t"><i></i><i></i><i></i><i></i>Norden Design System</span></div><div class="nav"><a class="ext" href="https://www.figma.com/community/file/1325819127713530813" target="_blank" rel="noopener noreferrer">Figma file'+fsvg('external-link')+'</a></div>'+ORDER.map(function(g,gi){return '<div class="group'+(gi?' group--next':'')+'">'+g[0]+'</div><div class="nav">'+g[1].map(function(it){var s=slugOf(it[0]);return '<a href="#'+s+'"'+(s===cur?' aria-current="page"':'')+'>'+it[1]+'</a>'}).join('')+'</div>'}).join('');
 }
 function flash(msg){var c=$('#copied');c.textContent=msg;c.hidden=false;clearTimeout(flash.t);flash.t=setTimeout(function(){c.hidden=true},1400)}
 function copy(text,btn){
