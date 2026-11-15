@@ -75,6 +75,7 @@ h1{font-size:32px;line-height:40px;font-weight:500;margin:0 0 6px;letter-spacing
 .codebox pre{margin:0;padding:16px;overflow-x:auto;font:12.5px/1.6 var(--mono);color:var(--fg)}
 .codebox__p{position:relative}.codebox.is-collapsed pre{max-height:272px;overflow-y:hidden}.codebox.is-collapsed .codebox__p::after{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(to bottom,transparent,var(--code-bg));pointer-events:none}
 .codebox__bar{display:flex;justify-content:center;padding:8px;border-top:1px solid var(--line)}.codebox__more{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer}.codebox__more:hover{border-color:var(--accent);color:var(--accent)}
+.codetabs{display:flex;gap:4px;margin-bottom:8px}.codetabs button{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:6px;padding:4px 12px;font:inherit;font-size:12px;cursor:pointer}.codetabs button:hover{border-color:var(--accent);color:var(--accent)}.codetabs button[aria-selected=true]{background:var(--code-bg);border-color:var(--accent);color:var(--accent);font-weight:500}
 .copy{display:inline-flex;align-items:center;gap:6px;position:absolute;z-index:2;top:8px;right:8px;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
 .copy svg{width:14px;height:14px;flex:none}.copy:hover{border-color:var(--accent);color:var(--accent)}
 .matrix{border:1px solid var(--line);border-radius:10px;background:var(--n-neutral-100);overflow-x:auto;color:var(--n-neutral-900);font-family:var(--font)}
@@ -753,6 +754,12 @@ var AL_ICON={default:AL_I,info:AL_I,success:fsvg('check-circle'),warning:fsvg('a
 C.alert={title:'Alert',nav:'Alert',src:'figma',confirmed:true,desc:'A message that stays on the page to flag something important, such as a success or an error. Place it next to the content it relates to.',
   controls:[ctl('type','Variant','select','info',['default','info','success','warning','danger']),ctl('variant','Style','select','background',['background','indicator']),ctl('icon','Icon','bool',true),ctl('showTitle','Has title','bool',true),ctl('title','Title','text','Title',null,function(P){return P.showTitle}),ctl('message','Has message','bool',true),ctl('msg','Message','text','This is an example of a default alert message that will be shown to the user.',null,function(P){return P.message}),ctl('close','Has close icon','bool',true)],
   render:function(p){var t=p.type;return '<div class="nd-alert nd-alert--'+t+(p.variant==='indicator'?' nd-alert--accent':'')+'" role="'+(t==='danger'||t==='warning'?'alert':'status')+'">'+(p.icon?'<span class="nd-alert__ic">'+AL_ICON[t]+'</span>':'')+'<div class="nd-alert__b">'+(p.showTitle?'<p class="nd-alert__t">'+esc(p.title)+'</p>':'')+(p.message?'<p class="nd-alert__m">'+esc(p.msg)+'</p>':'')+'</div>'+(p.close?'<button class="nd-x" type="button" aria-label="Dismiss" data-dismiss-alert>'+I.x+'</button>':'')+'</div>'},
+  reactOnly:true,
+  cssOf:function(){return componentCSS(function(s){return /\.nd-alert/.test(s)||/^\.nd-x\b/.test(s)},'.fi * {\n  vector-effect: non-scaling-stroke;\n}\n\n*, *::before, *::after {\n  box-sizing: border-box;\n}\n\nbutton {\n  font: inherit;\n  color: inherit;\n}')},
+  reactOf:function(p){
+    var jsx=htmlToJsx(indent(C.alert.render(p))).replace(' data-dismiss-alert',' onClick={onClose}');
+    var body=jsx.split('\n').map(function(l){return '    '+l}).join('\n');
+    return 'export function Alert('+(p.close?'{ onClose }':'')+') {\n  return (\n'+body+'\n  );\n}'},
   matrix:function(){var d=defaults(C.alert),T=['default','info','success','warning','danger'];return {cols:T,rows:['background','indicator'].map(function(s){return {label:s,cells:T.map(function(t){return C.alert.render(Object.assign({},d,{type:t,variant:s,msg:'This is an example of a default alert message.'}))})}})}},
   bind:function(root){on(root,'[data-dismiss-alert]','click',function(b){var a=b.closest('.nd-alert');a.classList.add('out');a.style.pointerEvents='none';setTimeout(function(){a.classList.remove('out');a.style.pointerEvents=''},1000)})}};
 
@@ -1379,6 +1386,31 @@ function copy(text,btn){
   function fallback(){var pre=btn&&btn.parentNode&&btn.parentNode.querySelector('pre');if(pre){var r=document.createRange();r.selectNodeContents(pre);var s=getSelection();s.removeAllRanges();s.addRange(r)}flash('Press Ctrl+C to copy')}
 }
 function codeBox(text){return '<div class="codebox"><button class="copy" type="button">'+fsvg('copy')+'Copy</button><div class="codebox__p"><pre><code>'+esc(text)+'</code></pre></div></div>'}
+/* HTML markup to JSX text: class and for renamed, hyphenated attributes camelCased (data- and aria- kept), void tags self-closed, braces escaped. Used by a component's reactOf. */
+function htmlToJsx(html){
+  return html.split(/(<[^>]*>)/).map(function(part,i){
+    if(i%2===0)return part.replace(/[{}]/g,function(c){return "{'"+c+"'}"});
+    return part.replace(/\sclass=/g,' className=').replace(/\sfor=/g,' htmlFor=')
+      .replace(/\s([a-z]+)-([a-z]+)=/g,function(m,a,b){return /^(data|aria)$/.test(a)?m:' '+a+b.charAt(0).toUpperCase()+b.slice(1)+'='})
+      .replace(/<(input|br|img|hr)\b([^>]*[^\/])>/g,'<$1$2 />')}).join('');
+}
+/* Code tabs (HTML, React) show on components that define reactOf. The chosen tab is kept while properties change and reset on each page. */
+var CODE_TAB='html';
+var CODE_LABELS={html:'HTML',css:'CSS',react:'React'};
+function codeTabs(sn){
+  return '<div class="codetabs" role="tablist" aria-label="Code language">'+['html','css','react'].filter(function(k){return sn[k]}).map(function(k){return '<button type="button" role="tab" data-tab="'+k+'" aria-selected="'+(CODE_TAB===k)+'">'+CODE_LABELS[k]+'</button>'}).join('')+'</div>'+codeBox(sn[CODE_TAB])}
+/* CSS text for a component, read from the page stylesheet so it always matches what the preview uses: the rules whose selector passes match(), plus the :root tokens they reference. */
+function componentCSS(match,extra){
+  var rules=[],used={};
+  Array.prototype.forEach.call(document.styleSheets,function(sh){var list;try{list=sh.cssRules}catch(e){return}
+    Array.prototype.forEach.call(list,function(r){if(r.type===1&&match(r.selectorText))rules.push(r)})});
+  var body=rules.map(function(r){
+    var decl=r.cssText.replace(/^[^{]*\{/,'').replace(/\}\s*$/,'').split(/;\s*/).map(function(d){return d.trim()}).filter(Boolean);
+    decl.forEach(function(d){(d.match(/var\(--[a-z0-9-]+/g)||[]).forEach(function(v){used[v.slice(4)]=1})});
+    return r.selectorText.replace(/,\s*/g,',\n')+' {\n'+decl.map(function(d){return '  '+d+';'}).join('\n')+'\n}'});
+  var cs=getComputedStyle(document.documentElement),tok=Object.keys(used).filter(function(n){return !/^--(bar)$/.test(n)&&cs.getPropertyValue(n).trim()}).sort();
+  var root=tok.length?':root {\n'+tok.map(function(n){return '  '+n+': '+cs.getPropertyValue(n).trim()+';'}).join('\n')+'\n}\n\n':'';
+  return root+body.join('\n\n')+(extra?'\n\n'+extra:'')}
 /* Long code is cut at about twelve lines with a Show all button. The choice is kept while properties change and reset on each page. */
 var CODE_OPEN=false,CODE_MAX=272;
 function setupExpand(box){var pre=$('pre',box);if(!pre||pre.scrollHeight<=CODE_MAX+24)return;
@@ -1513,7 +1545,7 @@ function iconPicker(x){
   t.addEventListener('keydown',function(e){if(e.key==='ArrowDown'&&!pop){e.preventDefault();open()}});
   return w}
 function pageComponent(v,key){
-  var c=C[key],P={};if(c.reset)c.reset();c.controls.forEach(function(x){P[x.k]=x.d});
+  var c=C[key],P={};CODE_TAB='html';if(c.reset)c.reset();c.controls.forEach(function(x){P[x.k]=x.d});
 
   function mtx(m){return '<div class="matrix"><table><thead><tr><th></th>'+m.cols.map(function(x){return '<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+m.rows.map(function(r){return '<tr><td class="rl">'+r.label+'</td>'+r.cells.map(function(cell){return '<td>'+cell+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'}
   v.innerHTML=srcBadge(c)+'<h1>'+c.title+'</h1><p class="lede">'+c.desc+'</p><h2>Interactive preview</h2>'+
@@ -1536,8 +1568,21 @@ function pageComponent(v,key){
     read();last=JSON.stringify(P);c.controls.forEach(function(x){if(x.show&&x._l)x._l.hidden=!x.show(P)});stage.innerHTML=c.render(P);
     if(c.bind)c.bind(stage,Object.assign({},P),function(){return read()});
     var snippet=indent(c.codeOf?c.codeOf(P):c.render(P));
-    $('#code').innerHTML=codeBox(snippet);
-    wireCopy($('#code'),function(){return snippet});
+    if(c.reactOnly){
+      var rx=c.reactOf(P);
+      $('#code').innerHTML=codeBox(rx);
+      wireCopy($('#code'),function(){return rx});
+    }else if(c.reactOf){
+      var sn={html:snippet,css:c.cssOf?c.cssOf():'',react:c.reactOf(P)};
+      (function paintCode(){
+        $('#code').innerHTML=codeTabs(sn);
+        $$('.codetabs button',$('#code')).forEach(function(b){b.addEventListener('click',function(){CODE_TAB=b.dataset.tab;paintCode()})});
+        wireCopy($('#code'),function(){return sn[CODE_TAB]});
+      })();
+    }else{
+      $('#code').innerHTML=codeBox(snippet);
+      wireCopy($('#code'),function(){return snippet});
+    }
   }
   ctrls.addEventListener('input',function(e){var t=e.target;if(t&&t.hasAttribute&&t.hasAttribute('data-num')){var v2=t.value.replace(/\D/g,'').slice(0,2);if(v2!==t.value)t.value=v2}});
   ctrls.addEventListener('input',draw);ctrls.addEventListener('change',function(){if(JSON.stringify(read())!==last)draw()});
